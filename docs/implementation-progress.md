@@ -14,10 +14,31 @@
 | 7 | done | Stage 7 implement CLI pipeline |
 | GUI | done | Add simple Tkinter GUI |
 | PDF fix | done | Fix PDF-enabled pipeline regression test coverage |
+| CSV report | done | Add CSV card choice report |
+
+### CSV card choice report (Phase A)
+
+**Current outputs:** `manifest.json` (authoritative JSON), `selection-report.md` (human markdown).
+
+**New output:** `card_choices.csv` — spreadsheet-friendly report, one row per unique decklist card (with `quantity`), plus error rows for failed lookups.
+
+**Row model:** Walk parsed decklist in order; first occurrence sets `deck_order` (1-based). `requested_name` and `normalised_name` both use the parsed deck entry name (parser normalises on read; raw pre-normalisation text is not stored).
+
+**Module:** `src/card_downloader/manifest/csv_writer.py` — pure `build_card_choice_rows()` + `write_card_choices_csv()` using stdlib `csv`.
+
+**Pipeline wiring:** `run_download()` and `run_plan()` write `card_choices.csv` alongside existing outputs. GUI logs CSV path on success.
+
+**Manifest extension (backwards-compatible):** optional fields on `ChosenPrintingRecord` — `set_name`, `released_at`, `printing_name`, `promo`, `finishes`, `is_universes_beyond`, `has_special_frame`.
+
+**Tests to add:**
+
+- `tests/unit/manifest/test_csv_writer.py` — rows, escaping, errors
+- extend `tests/integration/test_download_pipeline.py` — CSV written on download
+- extend `tests/unit/manifest/test_schema.py` — old manifest JSON loads
 
 ### Test count
 
-Run `pytest` — 78 tests after PDF regression tests added (75 before).
+Run `pytest` — 84 tests after CSV report (78 before).
 
 ### PDF regression (red phase — recorded before fix)
 

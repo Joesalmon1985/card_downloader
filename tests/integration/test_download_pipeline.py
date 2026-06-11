@@ -1,3 +1,4 @@
+import csv
 import json
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -70,6 +71,12 @@ def test_run_download_with_pdf_enabled_builds_proxy_pdf(
     assert (out_dir / "selection-report.md").is_file()
     assert (out_dir / "proxies.pdf").is_file()
     assert (out_dir / "proxies.pdf").stat().st_size > 1000
+    assert (out_dir / "card_choices.csv").is_file()
+    with (out_dir / "card_choices.csv").open(encoding="utf-8", newline="") as f:
+        rows = list(csv.DictReader(f))
+    assert len(rows) == 2
+    assert {r["requested_name"] for r in rows} == {"Sol Ring", "Command Tower"}
+    assert all(r["status"] == "ok" for r in rows)
 
 
 def test_run_download_with_pdf_disabled_skips_proxy_pdf(

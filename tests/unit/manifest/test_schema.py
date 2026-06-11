@@ -55,3 +55,47 @@ def test_manifest_round_trip():
     assert restored.selection_summary.anchor_set == "clu"
     assert restored.cards[0].deck_name == "Sol Ring"
     assert restored.outputs.pdf_pages == 1
+
+
+def test_manifest_loads_without_extended_printing_fields():
+    legacy = {
+        "version": 1,
+        "decklist_path": "deck.txt",
+        "generated_at": "2024-01-01T00:00:00+00:00",
+        "options": {},
+        "selection_summary": {
+            "anchor_set": "clu",
+            "coverage": 1.0,
+            "cards_in_anchor": 1,
+            "outliers": 0,
+            "total_score": 1.0,
+        },
+        "cards": [
+            {
+                "deck_name": "Sol Ring",
+                "quantity": 1,
+                "oracle_id": "oid",
+                "chosen_printing": {
+                    "id": "id1",
+                    "set": "clu",
+                    "collector_number": "1",
+                    "lang": "en",
+                    "border_color": "black",
+                    "scryfall_uri": "https://example.com",
+                    "image_url": "https://example.com/img.png",
+                    "image_paths": [],
+                },
+                "score": 1.0,
+                "score_breakdown": {},
+                "fallback_reasons": [],
+                "was_outlier": False,
+            }
+        ],
+        "errors": [],
+        "outputs": {},
+    }
+    restored = Manifest.from_dict(legacy)
+    cp = restored.cards[0].chosen_printing
+    assert cp.set_name == ""
+    assert cp.finishes == []
+    assert cp.is_universes_beyond is False

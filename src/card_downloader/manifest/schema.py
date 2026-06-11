@@ -15,6 +15,13 @@ class ChosenPrintingRecord:
     scryfall_uri: str
     image_url: str
     image_paths: list[str] = field(default_factory=list)
+    set_name: str = ""
+    released_at: str = ""
+    printing_name: str = ""
+    promo: bool = False
+    finishes: list[str] = field(default_factory=list)
+    is_universes_beyond: bool = False
+    has_special_frame: bool = False
 
 
 @dataclass
@@ -52,6 +59,7 @@ class OutputSummary:
     pdf_pages: int = 0
     pdf_cards_placed: int = 0
     pdf_options: PdfOptions = field(default_factory=PdfOptions)
+    csv_path: str = "card_choices.csv"
 
 
 @dataclass
@@ -100,6 +108,7 @@ class Manifest:
                 pdf_pages=outputs.get("pdf_pages", 0),
                 pdf_cards_placed=outputs.get("pdf_cards_placed", 0),
                 pdf_options=PdfOptions(**pdf_opts) if pdf_opts else PdfOptions(),
+                csv_path=outputs.get("csv_path", "card_choices.csv"),
             ),
         )
 

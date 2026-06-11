@@ -56,6 +56,7 @@ Pick a decklist and output folder, adjust options, and click **Download & Build 
 data/runs/my-run/
   manifest.json
   selection-report.md
+  card_choices.csv
   images/
   proxies.pdf
 ```

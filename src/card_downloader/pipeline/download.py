@@ -5,6 +5,7 @@ from card_downloader.decklist.parser import parse_decklist
 from card_downloader.download.images import ImageDownloader, RequestsImageDownloader
 from card_downloader.manifest.reader import read_manifest
 from card_downloader.manifest.schema import Manifest, OutputSummary, PdfOptions
+from card_downloader.manifest.csv_writer import write_card_choices_csv
 from card_downloader.manifest.writer import write_manifest, write_selection_report
 from card_downloader.pipeline.plan import create_manifest, run_plan
 from card_downloader.scryfall.client import ScryfallClient
@@ -79,11 +80,17 @@ def run_download(
             pdf_pages=pdf_pages,
             pdf_cards_placed=pdf_cards,
             pdf_options=PdfOptions(paper=paper, dpi=dpi, gap_mm=gap_mm),
+            csv_path="card_choices.csv",
         ),
     )
 
     write_manifest(manifest, out_dir / "manifest.json")
     write_selection_report(manifest, out_dir / "selection-report.md")
+    write_card_choices_csv(
+        manifest,
+        out_dir / "card_choices.csv",
+        decklist_path=decklist_path,
+    )
     return manifest
 
 
