@@ -10,6 +10,22 @@ venv/
 # Local outputs
 data/*
 !data/.gitkeep
+!data/decklists/
+data/decklists/*
+!data/decklists/.gitkeep
+!data/decklists/example-commander.txt
+data/cache/
+data/runs/
+output/
+*.pdf
+
+# Test / tooling
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
 
 # Cursor / editor
 .cursor/
