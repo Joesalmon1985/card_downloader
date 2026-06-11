@@ -40,6 +40,16 @@ card-downloader sheets data/runs/my-run/manifest.json --out data/runs/my-run/pro
 card-downloader explain "Sol Ring" --top 5
 ```
 
+## GUI
+
+For a simple desktop interface (no terminal required):
+
+```bash
+card-downloader-gui
+```
+
+Pick a decklist and output folder, adjust options, and click **Download & Build Proxies**. See [`docs/gui.md`](docs/gui.md) for details.
+
 ## Output layout
 
 ```
@@ -56,4 +66,4 @@ data/runs/my-run/
 pytest
 ```
 
-See `docs/project-plan.md`, `docs/selection-rules.md`, and `docs/tdd-roadmap.md` for design details.
+See `docs/project-plan.md`, `docs/selection-rules.md`, `docs/tdd-roadmap.md`, and `docs/gui.md` for design details.

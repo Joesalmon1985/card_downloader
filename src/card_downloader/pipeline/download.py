@@ -24,6 +24,7 @@ def run_download(
     pdf_name: str = "proxies.pdf",
     paper: str = "a4",
     dpi: int = 300,
+    gap_mm: float = 1.0,
     force: bool = False,
 ) -> Manifest:
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -63,7 +64,7 @@ def run_download(
         pdf_result = build_pdf(
             slots,
             out_dir / pdf_name,
-            PdfBuildOptions(paper=paper, dpi=dpi),
+            PdfBuildOptions(paper=paper, dpi=dpi, gap_mm=gap_mm),
         )
         pdf_pages = pdf_result.pages
         pdf_cards = pdf_result.cards_placed
@@ -77,7 +78,7 @@ def run_download(
             pdf_path=pdf_path if build_pdf else "",
             pdf_pages=pdf_pages,
             pdf_cards_placed=pdf_cards,
-            pdf_options=PdfOptions(paper=paper, dpi=dpi),
+            pdf_options=PdfOptions(paper=paper, dpi=dpi, gap_mm=gap_mm),
         ),
     )
 
