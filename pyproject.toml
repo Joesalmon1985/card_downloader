@@ -23,6 +23,7 @@ dev = [
 
 [project.scripts]
 card-downloader = "card_downloader.cli.main:main"
+card-downloader-gui = "card_downloader.gui.main:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
