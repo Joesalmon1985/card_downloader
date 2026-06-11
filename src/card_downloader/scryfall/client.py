@@ -1,10 +1,11 @@
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote
 
 import requests
 
 from card_downloader.scryfall.cache import FileCache
+from card_downloader.scryfall.errors import ScryfallAPIError, check_response
+from card_downloader.scryfall.headers import SCRYFALL_HEADERS
 from card_downloader.scryfall.models import CardPrinting
 from card_downloader.scryfall.pagination import collect_all_data
 from card_downloader.scryfall.rate_limit import RateLimiter
@@ -13,8 +14,24 @@ SEARCH_URL = "https://api.scryfall.com/cards/search"
 
 
 class RequestsHttpClient:
-    def get(self, url: str, *, params: dict[str, Any] | None = None, timeout: float = 30) -> requests.Response:
-        return requests.get(url, params=params, timeout=timeout)
+    def __init__(self, headers: dict[str, str] | None = None) -> None:
+        self._headers = headers or dict(SCRYFALL_HEADERS)
+
+    def get(
+        self,
+        url: str,
+        *,
+        params: dict[str, Any] | None = None,
+        timeout: float = 30,
+    ) -> requests.Response:
+        response = requests.get(
+            url,
+            params=params,
+            headers=self._headers,
+            timeout=timeout,
+        )
+        check_response(response)
+        return response
 
 
 class ScryfallClient:
@@ -45,18 +62,7 @@ class ScryfallClient:
             if cached is not None:
                 return [CardPrinting.from_api_dict(c) for c in cached]
 
-        self._rate.wait()
-        resp = self._http.get(SEARCH_URL, params=params)
-        resp.raise_for_status()
-        first = resp.json()
-
-        def fetch_page(url: str) -> dict[str, Any]:
-            self._rate.wait()
-            r = self._http.get(url)
-            r.raise_for_status()
-            return r.json()
-
-        raw_cards = collect_all_data(first, fetch_page)
+        raw_cards = self._fetch_search_pages(params)
         if self._use_cache and cache_key and self._cache:
             self._cache.set(cache_key, raw_cards)
 
@@ -77,23 +83,32 @@ class ScryfallClient:
             if cached is not None:
                 return set(cached)
 
-        self._rate.wait()
-        resp = self._http.get(SEARCH_URL, params=params)
-        if resp.status_code == 404:
-            ids: set[str] = set()
-        else:
-            resp.raise_for_status()
-            first = resp.json()
-
-            def fetch_page(url: str) -> dict[str, Any]:
-                self._rate.wait()
-                r = self._http.get(url)
-                r.raise_for_status()
-                return r.json()
-
-            raw = collect_all_data(first, fetch_page)
+        try:
+            raw = self._fetch_search_pages(params)
             ids = {c["id"] for c in raw}
+        except ScryfallAPIError as exc:
+            if exc.status_code == 404:
+                ids = set()
+            else:
+                raise
 
         if self._use_cache and cache_key and self._cache:
             self._cache.set(cache_key, sorted(ids))
         return ids
+
+    def _fetch_search_pages(self, params: dict[str, Any]) -> list[dict[str, Any]]:
+        self._rate.wait()
+        try:
+            resp = self._http.get(SEARCH_URL, params=params)
+        except ScryfallAPIError as exc:
+            if exc.status_code == 404:
+                return []
+            raise
+        first = resp.json()
+
+        def fetch_page(url: str) -> dict[str, Any]:
+            self._rate.wait()
+            r = self._http.get(url)
+            return r.json()
+
+        return collect_all_data(first, fetch_page)

@@ -1,8 +1,10 @@
 import argparse
+import sys
 from pathlib import Path
 
 from card_downloader.pipeline.download import run_download, run_sheets_from_manifest
 from card_downloader.pipeline.plan import run_plan
+from card_downloader.scryfall.errors import ScryfallAPIError
 from card_downloader.selection.models import SelectionOptions
 
 
@@ -16,31 +18,71 @@ def _selection_options(args: argparse.Namespace) -> SelectionOptions:
     )
 
 
+def _print_scryfall_error(context: str, exc: ScryfallAPIError) -> None:
+    print(f"Error: {context}", file=sys.stderr)
+    print(str(exc), file=sys.stderr)
+
+
+def _validate_manifest_success(manifest, *, action: str) -> None:
+    if manifest.cards:
+        return
+    print(f"Error: {action} failed — no cards were resolved.", file=sys.stderr)
+    for err in manifest.errors:
+        print(f"  {err}", file=sys.stderr)
+    raise SystemExit(1)
+
+
 def cmd_manifest(args: argparse.Namespace) -> None:
     out = Path(args.out).expanduser().resolve()
-    run_plan(
-        Path(args.decklist).expanduser(),
-        out,
-        opts=_selection_options(args),
-        cache_dir=Path(args.cache_dir).expanduser() if args.cache_dir else Path("data/cache"),
-    )
+    try:
+        manifest = run_plan(
+            Path(args.decklist).expanduser(),
+            out,
+            opts=_selection_options(args),
+            cache_dir=Path(args.cache_dir).expanduser() if args.cache_dir else Path("data/cache"),
+        )
+    except ScryfallAPIError as exc:
+        _print_scryfall_error("manifest request failed", exc)
+        raise SystemExit(1) from exc
+
+    if manifest.errors and not manifest.cards:
+        _validate_manifest_success(manifest, action="Manifest")
     print(f"Manifest written to {out / 'manifest.json'}")
+    if manifest.errors:
+        print(f"Warning: {len(manifest.errors)} card(s) could not be resolved.", file=sys.stderr)
 
 
 def cmd_download(args: argparse.Namespace) -> None:
     out = Path(args.out).expanduser().resolve()
-    run_download(
-        Path(args.decklist).expanduser(),
-        out,
-        opts=_selection_options(args),
-        cache_dir=Path(args.cache_dir).expanduser() if args.cache_dir else Path("data/cache"),
-        build_pdf=not args.no_pdf,
-        pdf_name=args.pdf or "proxies.pdf",
-        paper=args.paper,
-        dpi=args.dpi,
-        force=args.force,
-    )
-    print(f"Download complete: {out}")
+    try:
+        manifest = run_download(
+            Path(args.decklist).expanduser(),
+            out,
+            opts=_selection_options(args),
+            cache_dir=Path(args.cache_dir).expanduser() if args.cache_dir else Path("data/cache"),
+            build_pdf=not args.no_pdf,
+            pdf_name=args.pdf or "proxies.pdf",
+            paper=args.paper,
+            dpi=args.dpi,
+            force=args.force,
+        )
+    except ScryfallAPIError as exc:
+        _print_scryfall_error("download request failed", exc)
+        raise SystemExit(1) from exc
+
+    if not manifest.cards:
+        _validate_manifest_success(manifest, action="Download")
+
+    images_ok = sum(1 for c in manifest.cards if c.chosen_printing.image_paths)
+    if images_ok == 0 and not args.no_pdf:
+        print("Error: Download failed — no card images were saved.", file=sys.stderr)
+        for err in manifest.errors:
+            print(f"  {err}", file=sys.stderr)
+        raise SystemExit(1)
+
+    print(f"Download complete: {out} ({len(manifest.cards)} card(s), {images_ok} image(s))")
+    if manifest.errors:
+        print(f"Warning: {len(manifest.errors)} card(s) could not be resolved.", file=sys.stderr)
 
 
 def cmd_sheets(args: argparse.Namespace) -> None:
@@ -53,15 +95,23 @@ def cmd_sheets(args: argparse.Namespace) -> None:
 def cmd_explain(args: argparse.Namespace) -> None:
     from card_downloader.scryfall.client import ScryfallClient
     from card_downloader.selection.optimizer import build_pools
-    from card_downloader.selection.scoring import score_printing
 
     opts = _selection_options(args)
     client = ScryfallClient(cache_dir=Path(args.cache_dir or "data/cache"))
     name = args.card
-    printings = client.search_printings(name)
-    ub_ids = client.search_universes_beyond_ids(name)
+    try:
+        printings = client.search_printings(name)
+        ub_ids = client.search_universes_beyond_ids(name)
+    except ScryfallAPIError as exc:
+        _print_scryfall_error(f'could not fetch printings for "{name}"', exc)
+        raise SystemExit(1) from exc
+
     pools = build_pools({name: printings}, {name: ub_ids}, opts)
     candidates = pools.get(name, [])
+    if not candidates:
+        print(f'No usable printings found for "{name}".', file=sys.stderr)
+        raise SystemExit(1)
+
     top = sorted(candidates, key=lambda c: c.score, reverse=True)[: args.top]
     print(f"Top {len(top)} printings for {name!r}:\n")
     for i, c in enumerate(top, 1):

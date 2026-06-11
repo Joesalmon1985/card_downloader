@@ -11,6 +11,7 @@ from card_downloader.manifest.schema import (
 )
 from card_downloader.manifest.writer import write_manifest, write_selection_report
 from card_downloader.scryfall.client import ScryfallClient
+from card_downloader.scryfall.errors import ScryfallAPIError
 from card_downloader.selection.anchors import rank_anchors
 from card_downloader.selection.models import SelectionOptions
 from card_downloader.selection.optimizer import best_assignment, build_pools
@@ -45,6 +46,10 @@ def create_manifest(
             ub_ids_by_name[name] = scryfall.search_universes_beyond_ids(name)
             for p in printings:
                 printings_by_id[p.id] = p
+        except ScryfallAPIError as exc:
+            errors.append(f"{name}: {exc}")
+            printings_by_name[name] = []
+            ub_ids_by_name[name] = set()
         except Exception as exc:
             errors.append(f"{name}: {exc}")
             printings_by_name[name] = []
