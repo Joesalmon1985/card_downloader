@@ -1,18 +1,59 @@
 # Card Downloader
 
-A small tool for downloading and organising card data/images.
+Download Magic: The Gathering card printings from Scryfall, choose printings intelligently for proxy decks, and build printer-ready 3×3 PDF sheets.
 
-## Goals
+## Install
 
-- Download card data from supported sources.
-- Store card data locally in a structured format.
-- Optionally download card images.
-- Keep downloads repeatable and auditable.
-- Be easy for Cursor to maintain and extend.
+```bash
+pip install -e ".[dev]"
+```
 
-## Initial project structure
+## Usage
 
-- `src/` - application code
-- `data/` - local data outputs, ignored where appropriate
-- `tests/` - automated tests
-- `docs/` - project notes and implementation guidance
+### Full download (manifest + images + PDF)
+
+```bash
+card-downloader download data/decklists/example-commander.txt --out data/runs/my-run
+```
+
+### Manifest only (no images)
+
+```bash
+card-downloader manifest data/decklists/example-commander.txt --out data/runs/my-run
+```
+
+### Download without PDF
+
+```bash
+card-downloader download data/decklists/example-commander.txt --out data/runs/my-run --no-pdf
+```
+
+### Rebuild PDF from existing manifest
+
+```bash
+card-downloader sheets data/runs/my-run/manifest.json --out data/runs/my-run/proxies.pdf
+```
+
+### Explain printing choices for one card
+
+```bash
+card-downloader explain "Sol Ring" --top 5
+```
+
+## Output layout
+
+```
+data/runs/my-run/
+  manifest.json
+  selection-report.md
+  images/
+  proxies.pdf
+```
+
+## Tests
+
+```bash
+pytest
+```
+
+See `docs/project-plan.md`, `docs/selection-rules.md`, and `docs/tdd-roadmap.md` for design details.
