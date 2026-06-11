@@ -1,0 +1,37 @@
+{
+  "object": "list",
+  "total_cards": 2,
+  "has_more": false,
+  "data": [
+    {
+      "object": "card",
+      "id": "33333333-3333-3333-3333-333333333333",
+      "oracle_id": "22222222-2222-2222-2222-222222222222",
+      "name": "Sol Ring",
+      "lang": "en",
+      "layout": "normal",
+      "set": "c21",
+      "set_name": "Commander 2021",
+      "set_type": "commander",
+      "collector_number": "260",
+      "digital": false,
+      "games": ["paper", "mtgo"],
+      "border_color": "black",
+      "frame": "2015",
+      "frame_effects": [],
+      "full_art": false,
+      "promo": false,
+      "promo_types": [],
+      "variation": false,
+      "finishes": ["nonfoil", "foil"],
+      "highres_image": true,
+      "image_status": "highres_scan",
+      "image_uris": {
+        "png": "https://cards.scryfall.io/png/front/3/3/sol_ring_c21.png"
+      },
+      "scryfall_uri": "https://scryfall.com/card/c21/260/sol-ring",
+      "released_at": "2021-04-23",
+      "reprint": true
+    }
+  ]
+}

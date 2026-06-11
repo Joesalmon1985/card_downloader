@@ -1,0 +1,14 @@
+{
+  "object": "card",
+  "id": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+  "name": "Treasure",
+  "layout": "token",
+  "set": "tmh3",
+  "set_type": "token",
+  "collector_number": "1",
+  "digital": false,
+  "games": ["paper"],
+  "border_color": "black",
+  "image_status": "highres_scan",
+  "image_uris": {"png": "https://example.com/token.png"}
+}
