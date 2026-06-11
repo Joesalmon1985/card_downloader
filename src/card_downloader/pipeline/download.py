@@ -9,7 +9,7 @@ from card_downloader.manifest.writer import write_manifest, write_selection_repo
 from card_downloader.pipeline.plan import create_manifest, run_plan
 from card_downloader.scryfall.client import ScryfallClient
 from card_downloader.selection.models import SelectionOptions
-from card_downloader.sheets.builder import PdfBuildOptions, build_pdf
+from card_downloader.sheets.builder import PdfBuildOptions, build_pdf as build_proxy_pdf
 from card_downloader.sheets.slots import expand_to_slots
 
 
@@ -61,7 +61,7 @@ def run_download(
         deck = parse_decklist(decklist_path.read_text(encoding="utf-8"))
         manifest = replace(manifest, cards=updated_cards)
         slots = expand_to_slots(deck, manifest, out_dir)
-        pdf_result = build_pdf(
+        pdf_result = build_proxy_pdf(
             slots,
             out_dir / pdf_name,
             PdfBuildOptions(paper=paper, dpi=dpi, gap_mm=gap_mm),
@@ -103,7 +103,7 @@ def run_sheets_from_manifest(
             deck_path = Path(manifest.decklist_path)
     deck = parse_decklist(deck_path.read_text(encoding="utf-8"))
     slots = expand_to_slots(deck, manifest, run_dir)
-    result = build_pdf(slots, out_pdf, PdfBuildOptions(paper=paper, dpi=dpi))
+    result = build_proxy_pdf(slots, out_pdf, PdfBuildOptions(paper=paper, dpi=dpi))
     manifest = replace(
         manifest,
         outputs=replace(

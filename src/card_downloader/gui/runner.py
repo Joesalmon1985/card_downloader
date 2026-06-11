@@ -1,3 +1,4 @@
+import traceback
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
@@ -63,6 +64,8 @@ def execute_run(
         )
     except Exception as exc:
         _log(on_log, f"Unexpected error: {exc}", log_lines)
+        for line in traceback.format_exc().splitlines():
+            _log(on_log, line, log_lines)
         return RunResult(
             success=False,
             message=str(exc),
