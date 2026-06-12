@@ -15,6 +15,15 @@
 | GUI | done | Add simple Tkinter GUI |
 | PDF fix | done | Fix PDF-enabled pipeline regression test coverage |
 | CSV report | done | Add CSV card choice report |
+| Windows installer | done | Add Windows installer packaging setup |
+
+### Windows installer packaging (Phase B)
+
+**Goal:** PyInstaller + Inno Setup for GUI; real `.exe` built on GitHub Actions `windows-latest` (not on Ubuntu).
+
+**Deliverables:** `packaging/pyinstaller/CardDownloader.spec`, `packaging/windows/CardDownloader.iss`, `scripts/build_windows.ps1`, `scripts/build_linux.sh`, `.github/workflows/windows-installer.yml`, `docs/packaging.md`.
+
+**Tests:** `tests/unit/packaging/test_packaging_config.py`.
 
 ### CSV card choice report (Phase A)
 
@@ -38,7 +47,7 @@
 
 ### Test count
 
-Run `pytest` — 84 tests after CSV report (78 before).
+Run `pytest` — 90 tests after Windows packaging config tests (84 before).
 
 ### PDF regression (red phase — recorded before fix)
 

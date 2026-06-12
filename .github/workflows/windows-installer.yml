@@ -1,0 +1,47 @@
+name: Windows Installer
+
+on:
+  push:
+    branches:
+      - cursor/windows-installer
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-installer:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install project and PyInstaller
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[packaging]"
+
+      - name: Build PyInstaller bundle
+        run: pyinstaller packaging/pyinstaller/CardDownloader.spec --noconfirm
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y
+
+      - name: Build Windows installer
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            $iscc = "${env:ProgramFiles}\Inno Setup 6\ISCC.exe"
+          }
+          & $iscc packaging/windows/CardDownloader.iss
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CardDownloader-Setup
+          path: release/CardDownloader-Setup-*.exe

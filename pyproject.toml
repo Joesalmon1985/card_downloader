@@ -20,6 +20,9 @@ dev = [
     "pytest-cov>=4.1",
     "responses>=0.25",
 ]
+packaging = [
+    "pyinstaller>=6.0",
+]
 
 [project.scripts]
 card-downloader = "card_downloader.cli.main:main"

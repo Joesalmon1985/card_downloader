@@ -26,6 +26,10 @@ htmlcov/
 *.egg-info/
 dist/
 build/
+release/
+packaging/output/
+*.exe
+!packaging/windows/*.iss
 
 # Cursor / editor
 .cursor/
