@@ -9,10 +9,12 @@ from card_downloader.manifest.schema import (
     SelectionSummary,
     utc_now_iso,
 )
+from card_downloader.manifest.csv_writer import write_card_choices_csv
 from card_downloader.manifest.writer import write_manifest, write_selection_report
 from card_downloader.scryfall.client import ScryfallClient
 from card_downloader.scryfall.errors import ScryfallAPIError
 from card_downloader.selection.anchors import rank_anchors
+from card_downloader.selection.classify import classify_printing
 from card_downloader.selection.models import SelectionOptions
 from card_downloader.selection.optimizer import best_assignment, build_pools
 
@@ -62,6 +64,11 @@ def create_manifest(
     cards: list[CardManifestRow] = []
     for a in assignment.assignments:
         p = a.printing
+        classification = classify_printing(
+            p,
+            ub_ids_by_name.get(a.deck_name, set()),
+            opts,
+        )
         breakdown = {
             "nonfoil": a.breakdown.nonfoil,
             "border": a.breakdown.border,
@@ -88,6 +95,13 @@ def create_manifest(
                     scryfall_uri=p.scryfall_uri,
                     image_url=p.primary_image_uri(opts.image_size) or "",
                     image_paths=[],
+                    set_name=p.set_name,
+                    released_at=p.released_at,
+                    printing_name=p.name,
+                    promo=classification.is_promo,
+                    finishes=list(p.finishes),
+                    is_universes_beyond=classification.is_universes_beyond,
+                    has_special_frame=classification.has_special_frame,
                 ),
                 score=a.score,
                 score_breakdown=breakdown,
@@ -138,4 +152,9 @@ def run_plan(
     manifest_path = out_dir / "manifest.json"
     write_manifest(manifest, manifest_path)
     write_selection_report(manifest, out_dir / "selection-report.md")
+    write_card_choices_csv(
+        manifest,
+        out_dir / "card_choices.csv",
+        decklist_path=decklist_path,
+    )
     return manifest

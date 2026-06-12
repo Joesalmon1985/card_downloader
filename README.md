@@ -56,6 +56,7 @@ Pick a decklist and output folder, adjust options, and click **Download & Build 
 data/runs/my-run/
   manifest.json
   selection-report.md
+  card_choices.csv
   images/
   proxies.pdf
 ```
@@ -67,3 +68,7 @@ pytest
 ```
 
 See `docs/project-plan.md`, `docs/selection-rules.md`, `docs/tdd-roadmap.md`, and `docs/gui.md` for design details.
+
+## Building the Windows installer
+
+The Tkinter GUI can be packaged for Windows using PyInstaller and Inno Setup. See [`docs/packaging.md`](docs/packaging.md) for local Windows build steps and how to download the installer from GitHub Actions.

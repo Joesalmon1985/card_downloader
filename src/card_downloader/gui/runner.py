@@ -15,6 +15,7 @@ class RunResult:
     out_dir: Path | None = None
     manifest_path: Path | None = None
     report_path: Path | None = None
+    csv_path: Path | None = None
     pdf_path: Path | None = None
     log_lines: list[str] = field(default_factory=list)
 
@@ -102,11 +103,14 @@ def execute_run(
 
     manifest_path = out_dir / "manifest.json"
     report_path = out_dir / "selection-report.md"
+    csv_path = out_dir / "card_choices.csv" if (out_dir / "card_choices.csv").is_file() else None
     pdf_path = out_dir / "proxies.pdf" if build_pdf and pdf_path_exists(out_dir) else None
 
     _log(on_log, f"Done: {len(manifest.cards)} card(s), {images_ok} image(s).", log_lines)
     _log(on_log, f"Manifest: {manifest_path}", log_lines)
     _log(on_log, f"Report: {report_path}", log_lines)
+    if csv_path:
+        _log(on_log, f"CSV: {csv_path}", log_lines)
     if pdf_path:
         _log(on_log, f"PDF: {pdf_path}", log_lines)
     if manifest.errors:
@@ -118,6 +122,7 @@ def execute_run(
         out_dir=out_dir,
         manifest_path=manifest_path,
         report_path=report_path,
+        csv_path=csv_path,
         pdf_path=pdf_path,
         log_lines=log_lines,
     )

@@ -67,15 +67,18 @@ def test_execute_run_success(tmp_path):
     deck = tmp_path / "deck.txt"
     deck.write_text("1 Sol Ring\n", encoding="utf-8")
     out = tmp_path / "out"
+    out.mkdir()
     opts = GuiRunOptions(decklist_path=deck, output_dir=out, build_pdf=True)
 
     with patch("card_downloader.gui.runner.run_download") as mock_run:
         mock_run.return_value = _manifest([_card_row("Sol Ring")])
+        (out / "card_choices.csv").write_text("deck_order\n", encoding="utf-8")
         with patch("card_downloader.gui.runner.pdf_path_exists", return_value=True):
             result = execute_run(opts, cache_dir=tmp_path / "cache")
 
     assert result.success is True
     assert result.manifest_path == out.resolve() / "manifest.json"
+    assert result.csv_path == out.resolve() / "card_choices.csv"
     assert result.pdf_path == out.resolve() / "proxies.pdf"
 
 
